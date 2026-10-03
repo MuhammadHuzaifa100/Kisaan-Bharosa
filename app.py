@@ -553,7 +553,7 @@ st.markdown(f"""
 <div class="footer-sig">
     <strong>Kisaan Bharosa</strong> — AI Hackathon Pakistan 2026<br>
     Built by <strong>Muhammad Huzaifa</strong> | All Rights Reserved<br>
-    <span style="font-size: 10px; color: #bbb;">Unauthorized copying or reproduction is prohibited.</span>
+    <span style="font-size: 10px; color: #bbb;">Unauthorized copying is prohibited.</span>
 </div>
 """, unsafe_allow_html=True)
 
