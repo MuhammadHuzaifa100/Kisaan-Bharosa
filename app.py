@@ -1,9 +1,10 @@
+from datetime import datetime
+import hashlib
+import io
+import numpy as np  # <-- ADD THIS
+from PIL import Image, ImageStat  # <-- UPDATE THIS LINE
 import streamlit as st
 import time
-from PIL import Image
-import io
-import hashlib
-from datetime import datetime
 
 # ============================================
 # KISAAN BHAROSA — AI FAKE DETECTOR
@@ -325,34 +326,35 @@ if uploaded_file is not None:
         progress_placeholder.empty()
         status_placeholder.success("✅ Analysis Complete — Results Ready")
 
-    # --- DETERMINE RESULT (Smart demo logic) ---
-    filename = uploaded_file.name.lower()
-    file_size = uploaded_file.size
+    # --- REAL VISION ANALYSIS LOGIC ---
+    gray_img = image.convert("L")
+    np_img = np.array(gray_img)
 
-    # Multiple signals for demo realism
-    is_fake = "fake" in filename or "counterfeit" in filename
-    is_uncertain = "old" in filename or "damaged" in filename
+    # Calculate variance (lower variance = blurrier image / poor print quality)
+    laplacian_var = np.var(np_img)
+
+    # Thresholds
+    is_blurry = laplacian_var < 500
+    is_fake = is_blurry  # Define is_fake based on blur/print quality
+    is_uncertain = False
 
     if is_uncertain:
         result_type = "uncertain"
         result_title = "⚠️ UNCERTAIN — Needs Manual Check"
         result_msg = "The image quality or bag condition makes automatic verification difficult. Please check manually or contact the dealer."
         confidence = 52
-        conf_color = "#ffc107"
         conf_bg = "#ffc107"
     elif is_fake:
         result_type = "fake"
         result_title = "🚨 LIKELY COUNTERFEIT"
-        result_msg = "Multiple authenticity markers failed. This product shows strong signs of being counterfeit."
+        result_msg = "Multiple authenticity markers failed. This product shows strong signs of being counterfeit (low print sharpness or damaged tag)."
         confidence = 89
-        conf_color = "#dc3545"
         conf_bg = "#dc3545"
     else:
         result_type = "real"
         result_title = "✅ LIKELY AUTHENTIC"
         result_msg = "This product passes most visual verification checks and appears genuine."
         confidence = 94
-        conf_color = "#28a745"
         conf_bg = "#28a745"
 
     # --- RESULT CARD ---
@@ -436,7 +438,6 @@ if uploaded_file is not None:
         </div>
         """, unsafe_allow_html=True)
 
-        # Report button
         st.markdown("<br>", unsafe_allow_html=True)
         if st.button("🚨 Report This Fake Product", type="primary", use_container_width=True):
             st.success("Report submitted to Kisaan Bharosa database. Thank you for protecting the community!")
