@@ -291,8 +291,8 @@ if uploaded_file is not None:
             progress_bar.progress(40, text="Extracting batch numbers, logos, and security seals...")
 
             try:
-                # Call Gemini Model for real analysis
-                model = genai.GenerativeModel("gemini-2.5-flash")
+                # Updated Gemini Model
+                model = genai.GenerativeModel("gemini-3.8-flash")
                 prompt = (
                     "You are an expert agricultural inspector in Pakistan specializing in detecting counterfeit seeds and fertilizers. "
                     "Analyze this product package image carefully. Evaluate these 6 markers: "
@@ -320,7 +320,6 @@ if uploaded_file is not None:
                     result_type = "uncertain"
 
                 confidence = 90
-                # Extract confidence if possible, else default
                 for word in ai_output.split():
                     if word.isdigit() and 50 <= int(word) <= 100:
                         confidence = int(word)
