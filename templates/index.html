@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kisaan Bharosa | Agricultural Quality & Phytosanitary Portal</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0F5132',
+                        'primary-dark': '#0A3622',
+                        'primary-light': '#E8F5E9',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col">
+
+    <!-- Top Regulatory Header -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Branding -->
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-emerald-800 text-white flex items-center justify-center font-bold text-sm rounded">
+                        KB
+                    </div>
+                    <div>
+                        <div class="text-base font-bold text-slate-900 leading-tight">Kisaan Bharosa</div>
+                        <div class="text-[11px] text-slate-500 font-medium">Agricultural Quality & Phytosanitary Verification Portal</div>
+                    </div>
+                    <span class="hidden md:inline-block ml-3 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-600 rounded border border-slate-300">
+                        PSQCA &bull; FSC&amp;RD Registered
+                    </span>
+                </div>
+
+                <!-- Auth / Profile Bar -->
+                <div class="flex items-center space-x-3">
+                    <div id="auth-actions" class="flex items-center space-x-2">
+                        <button type="button" data-modal-open="login-modal" class="text-xs font-semibold px-3 py-1.5 rounded border border-slate-300 text-slate-700 hover:bg-slate-50 transition-colors">
+                            Sign In
+                        </button>
+                        <button type="button" data-modal-open="register-modal" class="text-xs font-semibold px-3 py-1.5 rounded bg-emerald-800 text-white hover:bg-emerald-900 transition-colors">
+                            Register
+                        </button>
+                    </div>
+
+                    <div id="user-profile-bar" class="hidden flex items-center space-x-3">
+                        <div class="text-right">
+                            <div id="profile-name" class="text-xs font-bold text-slate-900">User</div>
+                            <div id="profile-role" class="text-[10px] font-mono font-semibold text-emerald-800">FARMER</div>
+                        </div>
+                        <button type="button" data-action="logout" class="text-xs text-slate-500 hover:text-slate-800 underline">
+                            Sign Out
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Navigation -->
+            <nav class="flex space-x-1 border-t border-slate-100 overflow-x-auto">
+                <button class="tab-btn active" data-tab="audit">Laboratory Inspection</button>
+                <button class="tab-btn" data-tab="registry">Audit Registry</button>
+                <button class="tab-btn" data-tab="directory">PSQCA Price &amp; Subsidies</button>
+                <button class="tab-btn" data-tab="reports">Counterfeit Complaints</button>
+                <button class="tab-btn hidden" data-tab="dashboard" id="tab-btn-dashboard">Inspector Analytics</button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- ================================================================== -->
+        <!-- TAB 1: LABORATORY INSPECTION & DIAGNOSTICS                         -->
+        <!-- ================================================================== -->
+        <section id="tab-pane-audit" class="tab-pane">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                
+                <!-- Left Panel: Input Upload & Controls -->
+                <div class="lg:col-span-5 space-y-4">
+                    <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
+                        <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider mb-1">Specimen Submission</h2>
+                        <p class="text-xs text-slate-500 mb-4">Upload packaging (seed sack, fertilizer bag) or live plant foliage for spectroscopic and visual audit.</p>
+
+                        <!-- Dropzone -->
+                        <div id="dropzone" class="dropzone mb-4">
+                            <input type="file" id="file-input" aria-label="Choose a photograph of packaging or a crop specimen" class="hidden" accept="image/jpeg,image/png,image/webp">
+                            
+                            <div id="upload-prompt">
+                                <div class="text-xs font-semibold text-slate-800 mb-1">Click to browse or drag image here</div>
+                                <div class="text-[11px] text-slate-400">JPG, PNG, or WEBP &bull; Max 15 MB</div>
+                            </div>
+
+                            <div id="preview-container" class="hidden">
+                                <img id="preview-img" src="" alt="Specimen Preview" class="max-h-60 mx-auto rounded border border-slate-200 mb-2 object-contain">
+                                <button type="button" id="btn-clear-preview" class="text-xs text-red-600 hover:text-red-800 underline font-medium">Remove Image</button>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex space-x-2">
+                            <button id="btn-open-camera" type="button" class="flex-1 py-2 px-3 text-xs font-semibold rounded border border-slate-300 text-slate-700 hover:bg-slate-50 transition-colors">
+                                Live Camera Snap
+                            </button>
+                            <button id="btn-analyze" type="button" disabled class="flex-1 py-2 px-3 text-xs font-semibold rounded bg-emerald-800 text-white hover:bg-emerald-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                                Run Quality Audit
+                            </button>
+                        </div>
+
+                        <!-- Progress Bar -->
+                        <div id="audit-progress" class="hidden mt-4 pt-3 border-t border-slate-100">
+                            <div class="flex justify-between text-[11px] font-medium text-slate-600 mb-1">
+                                <span id="audit-progress-label">Auditing specimen...</span>
+                            </div>
+                            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                                <div id="audit-progress-fill" class="bg-emerald-700 h-2 rounded-full transition-all duration-300" style="width: 15%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Regulatory Instructions -->
+                    <div class="bg-slate-100 p-4 rounded-lg border border-slate-200 text-xs text-slate-600 space-y-2">
+                        <div class="font-bold text-slate-800 text-[11px] uppercase tracking-wider">Audit Standards Reference</div>
+                        <div>&bull; <strong>Fertilizer/Chemicals:</strong> Inspects PSQCA CM/L certification, thermal batch matrix, and tamper-evident diffraction stitching.</div>
+                        <div>&bull; <strong>Crops/Seeds:</strong> Identifies foliar chlorosis, stripe rust spores, and certified FSC&amp;RD seed lot tags.</div>
+                    </div>
+                </div>
+
+                <!-- Right Panel: Comprehensive Diagnostic Report -->
+                <div class="lg:col-span-7">
+                    <!-- Empty State -->
+                    <div id="empty-audit-state" class="bg-white rounded-lg border border-slate-200 p-12 text-center shadow-sm">
+                        <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Awaiting Inspection</div>
+                        <p class="text-xs text-slate-500 max-w-sm mx-auto">Upload an agricultural product packaging photo or crop specimen on the left to generate an authenticated laboratory report.</p>
+                    </div>
+
+                    <!-- Diagnostic Results Card (Rendered via JS) -->
+                    <div id="diagnostic-results" class="hidden space-y-6">
+                        <!-- Stored-but-unanalysed notice -->
+                        <div id="report-pending-notice" class="hidden audit-card p-4 border-l-neutral text-xs text-slate-700">
+                            <div class="font-bold uppercase tracking-wider text-[10px] text-slate-500 mb-1">Photograph saved, not yet analysed</div>
+                            <p id="report-pending-reason" class="leading-relaxed"></p>
+                            <div id="puter-analyze-area" class="hidden mt-3">
+                                <button id="btn-puter-analyze" type="button" data-action="puter-analyze"
+                                        class="px-4 py-2 rounded bg-indigo-600 text-white text-xs font-bold uppercase tracking-wider hover:bg-indigo-700 disabled:opacity-50">
+                                    Analyse in my browser (Puter.js, no server key)
+                                </button>
+                                <p class="mt-2 text-[10px] text-slate-500 leading-relaxed">
+                                    Runs a vision model through your own Puter session and stores its answer
+                                    against this record. The verdict is marked as browser-supplied and is not
+                                    verified by this server.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Primary Verdict Box -->
+                        <div id="report-verdict-card" class="audit-card p-6 border-l-authentic">
+                            <div class="flex justify-between items-start mb-2">
+                                <span id="report-badge" class="badge badge-authentic">Awaiting analysis</span>
+                                <span id="report-ref" class="text-xs font-mono font-medium text-slate-400">REF-00000000</span>
+                            </div>
+                            <h2 id="report-subject-name" class="text-xl font-bold text-slate-900 mb-2">Unaudited photograph</h2>
+                            <p id="report-summary" class="text-xs text-slate-600 leading-relaxed mb-4">No analysis has been run on this image yet.</p>
+
+                            <img id="report-image" class="w-full max-h-72 object-contain bg-slate-50 border border-slate-200 rounded mb-4" alt="Uploaded specimen photograph">
+
+                            <!-- Metric Grid -->
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 p-3 bg-slate-50 border border-slate-200 rounded text-xs">
+                                <div>
+                                    <div class="text-[10px] uppercase font-bold text-slate-400">Classification</div>
+                                    <div id="report-classification" class="font-semibold text-slate-800 mt-0.5">&mdash;</div>
+                                </div>
+                                <div>
+                                    <div class="text-[10px] uppercase font-bold text-slate-400">Confidence Metric</div>
+                                    <div id="report-confidence" class="font-mono font-bold text-slate-900 mt-0.5">&mdash;</div>
+                                </div>
+                                <div>
+                                    <div class="text-[10px] uppercase font-bold text-slate-400">Analysis Engine</div>
+                                    <div id="report-provenance" class="font-medium text-slate-700 mt-0.5">Not run</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Record actions -->
+                        <div class="flex flex-wrap gap-2">
+                            <button id="btn-reanalyze" class="hidden py-2 px-4 bg-emerald-800 hover:bg-emerald-900 text-white font-semibold text-xs rounded transition-colors">
+                                Run Analysis Again
+                            </button>
+                            <button id="btn-delete-scan" class="hidden py-2 px-4 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold text-xs rounded transition-colors">
+                                Delete This Record
+                            </button>
+                        </div>
+
+                        <!-- Technical Property Matrix Table -->
+                        <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+                            <div class="py-3 px-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800">Technical Property Matrix</h3>
+                                <span class="text-[11px] text-slate-400 font-medium">Standards Audit</span>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left">
+                                    <thead>
+                                        <tr class="bg-slate-50 border-b border-slate-200 text-[10px] uppercase font-bold text-slate-500">
+                                            <th class="py-2.5 px-4 w-1/3">Property</th>
+                                            <th class="py-2.5 px-4 w-1/2">Observed Marker vs Standard</th>
+                                            <th class="py-2.5 px-4 text-right">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="report-properties-body">
+                                        <!-- Rows populated by app.js -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Regulatory & Prescribed Protocol -->
+                        <div class="space-y-3">
+                            <div class="bg-slate-50 border-l-4 border-slate-800 p-4 rounded text-xs">
+                                <div class="font-bold text-slate-900 mb-1 uppercase tracking-wider text-[10px]">Regulatory Compliance Cross-Reference</div>
+                                <div id="report-regulatory" class="text-slate-700 leading-relaxed">Conforms to GOP Gazette Notification SRO 45(I)/2023.</div>
+                            </div>
+                            <div class="bg-slate-50 border-l-4 border-emerald-700 p-4 rounded text-xs">
+                                <div class="font-bold text-slate-900 mb-1 uppercase tracking-wider text-[10px]">Prescribed Action Protocol</div>
+                                <div id="report-protocol" class="text-slate-700 leading-relaxed">Product cleared for application.</div>
+                            </div>
+                        </div>
+
+                        <!-- Fraud Action Button (shown only when Counterfeit Suspected) -->
+                        <button id="btn-report-current-scan" class="hidden w-full py-2.5 px-4 bg-red-700 hover:bg-red-800 text-white font-semibold text-xs rounded transition-colors">
+                            File Formal Counterfeit Complaint Against Dealer
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ================================================================== -->
+        <!-- TAB 2: AUDIT REGISTRY & PERSISTENT HISTORY                         -->
+        <!-- ================================================================== -->
+        <section id="tab-pane-registry" class="tab-pane hidden">
+            <div class="bg-white border border-slate-200 rounded-lg shadow-sm p-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                    <div>
+                        <h2 class="text-base font-bold text-slate-900">National Audit Registry</h2>
+                        <p class="text-xs text-slate-500">Searchable database of inspected inputs, certified lots, and foliar disease records.</p>
+                    </div>
+
+                    <!-- Search & Filter Controls -->
+                    <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                        <input type="text" id="search-registry" aria-label="Search the audit register by reference, brand, or crop" placeholder="Search reference, brand, or crop..." class="text-xs border border-slate-300 rounded px-3 py-1.5 w-full md:w-64 focus:outline-none focus:ring-1 focus:ring-emerald-700">
+                        <select id="filter-verdict" aria-label="Filter by verdict" class="text-xs border border-slate-300 rounded px-2.5 py-1.5 bg-white text-slate-700">
+                            <option value="">All Verdicts</option>
+                            <option value="VERIFIED AUTHENTIC">Verified Authentic</option>
+                            <option value="COUNTERFEIT SUSPECTED">Counterfeit Alert</option>
+                            <option value="HEALTHY SPECIMEN">Healthy Specimen</option>
+                            <option value="DISEASE DETECTED">Disease Detected</option>
+                            <option value="INCONCLUSIVE">Inconclusive</option>
+                        </select>
+                        <select id="filter-classification" aria-label="Filter by specimen type" class="text-xs border border-slate-300 rounded px-2.5 py-1.5 bg-white text-slate-700">
+                            <option value="">All Types</option>
+                            <option value="Agricultural Input Package">Packaging</option>
+                            <option value="Crop Specimen">Crop Specimen</option>
+                            <option value="Unidentified Sample">Unidentified</option>
+                        </select>
+                        <select id="filter-analysis-status" aria-label="Filter by analysis state" class="text-xs border border-slate-300 rounded px-2.5 py-1.5 bg-white text-slate-700">
+                            <option value="">All States</option>
+                            <option value="PENDING_ANALYSIS">Awaiting Analysis</option>
+                            <option value="COMPLETED">Analysed</option>
+                            <option value="FAILED">Analysis Failed</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Registry Table -->
+                <div class="overflow-x-auto border border-slate-200 rounded">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200 text-[10px] uppercase font-bold text-slate-500">
+                                <th class="py-3 px-4">Audit Ref</th>
+                                <th class="py-3 px-4">Subject &amp; Category</th>
+                                <th class="py-3 px-4">Verdict</th>
+                                <th class="py-3 px-4">Confidence</th>
+                                <th class="py-3 px-4">Timestamp</th>
+                                <th class="py-3 px-4 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="registry-table-body">
+                            <!-- Populated dynamically by app.js -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================================================================== -->
+        <!-- TAB 3: PSQCA DIRECTORY & PRICE CALCULATOR                           -->
+        <!-- ================================================================== -->
+        <section id="tab-pane-directory" class="tab-pane hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                
+                <!-- Subsidized Rates Directory Table -->
+                <div class="lg:col-span-8 bg-white border border-slate-200 rounded-lg shadow-sm p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <div>
+                            <h2 class="text-base font-bold text-slate-900">Official Fertilizer &amp; Seed Registry</h2>
+                            <p class="text-xs text-slate-500">Government notified Maximum Retail Prices (MRP) and active PSQCA licenses.</p>
+                        </div>
+                        <select id="directory-category-filter" aria-label="Filter directory by category" class="text-xs border border-slate-300 rounded px-2.5 py-1.5 bg-white text-slate-700">
+                            <option value="">All Categories</option>
+                        </select>
+                    </div>
+
+                    <div class="overflow-x-auto border border-slate-200 rounded">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-slate-200 text-[10px] uppercase font-bold text-slate-500">
+                                    <th class="py-3 px-4">Brand &amp; Manufacturer</th>
+                                    <th class="py-3 px-4">Category</th>
+                                    <th class="py-3 px-4">Package</th>
+                                    <th class="py-3 px-4">Notified MRP</th>
+                                    <th class="py-3 px-4">Subsidy</th>
+                                    <th class="py-3 px-4">PSQCA License</th>
+                                </tr>
+                            </thead>
+                            <tbody id="directory-table-body">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Price Markup Difference Calculator -->
+                <div class="lg:col-span-4 bg-white border border-slate-200 rounded-lg shadow-sm p-6 space-y-4">
+                    <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Overpricing Detection Tool</h3>
+                    <p class="text-xs text-slate-500">Check if a dealer is quoting above the government-mandated price ceiling.</p>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1" for="calc-product-select">Select Product</label>
+                        <select id="calc-product-select" aria-label="Product to check" class="w-full text-xs border border-slate-300 rounded px-3 py-2 bg-white">
+                            <option value="">Loading notified prices...</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1" for="calc-dealer-price">Price Quoted by Dealer (PKR)</label>
+                        <input type="number" id="calc-dealer-price" placeholder="e.g. 5200" class="w-full text-xs border border-slate-300 rounded px-3 py-2">
+                    </div>
+
+                    <div id="calc-output" class="p-3 bg-slate-50 rounded border border-slate-200 text-xs text-slate-500">
+                        Select a product and enter the quoted price.
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ================================================================== -->
+        <!-- TAB 4: COUNTERFEIT COMPLAINTS & FRAUD REPORTS                      -->
+        <!-- ================================================================== -->
+        <section id="tab-pane-reports" class="tab-pane hidden">
+            <div class="bg-white border border-slate-200 rounded-lg shadow-sm p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 class="text-base font-bold text-slate-900">Fraud &amp; Regulatory Non-Compliance Central</h2>
+                        <p class="text-xs text-slate-500">Logged complaints submitted to provincial agricultural task forces.</p>
+                    </div>
+                    <button type="button" data-modal-open="fraud-modal" class="text-xs font-semibold px-4 py-2 bg-red-700 hover:bg-red-800 text-white rounded transition-colors">
+                        File Non-Compliance Complaint
+                    </button>
+                </div>
+
+                <!-- Reports Table -->
+                <div class="overflow-x-auto border border-slate-200 rounded">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200 text-[10px] uppercase font-bold text-slate-500">
+                                <th class="py-3 px-4">Case Ref</th>
+                                <th class="py-3 px-4">Dealer &amp; Location</th>
+                                <th class="py-3 px-4">Product &amp; Batch</th>
+                                <th class="py-3 px-4">Evidence Summary</th>
+                                <th class="py-3 px-4">Status</th>
+                                <th class="py-3 px-4 text-right">Investigation Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reports-table-body">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================================================================== -->
+        <!-- TAB 5: INSPECTOR ANALYTICS DASHBOARD                               -->
+        <!-- ================================================================== -->
+        <section id="tab-pane-dashboard" class="tab-pane hidden">
+            <div class="space-y-6">
+                <div>
+                    <h2 class="text-base font-bold text-slate-900">Quality Assurance Surveillance Metrics</h2>
+                    <p class="text-xs text-slate-500">Aggregated surveillance telemetry from provincial input checkpoints and phytosanitary audits.</p>
+                </div>
+
+                <!-- KPI Metric Grid -->
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                    <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+                        <div class="text-[10px] uppercase font-bold text-slate-400">Total Audits</div>
+                        <div id="kpi-total-scans" class="text-2xl font-bold text-slate-900 font-mono mt-1">0</div>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+                        <div class="text-[10px] uppercase font-bold text-emerald-700">Authentic Lots</div>
+                        <div id="kpi-authentic" class="text-2xl font-bold text-emerald-700 font-mono mt-1">0</div>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+                        <div class="text-[10px] uppercase font-bold text-red-600">Counterfeits Flagged</div>
+                        <div id="kpi-counterfeit" class="text-2xl font-bold text-red-600 font-mono mt-1">0</div>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+                        <div class="text-[10px] uppercase font-bold text-amber-600">Crop Pathogens</div>
+                        <div id="kpi-diseased" class="text-2xl font-bold text-amber-600 font-mono mt-1">0</div>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+                        <div class="text-[10px] uppercase font-bold text-slate-500">Formal Complaints</div>
+                        <div id="kpi-reports" class="text-2xl font-bold text-slate-900 font-mono mt-1">0</div>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+                        <div class="text-[10px] uppercase font-bold text-slate-500">Authenticity Rate</div>
+                        <div id="kpi-auth-rate" class="text-2xl font-bold text-emerald-800 font-mono mt-1">100%</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto px-4">
+            Kisaan Bharosa &bull; National Agricultural Input Authentication Framework &bull; AI Hackathon Pakistan 2026
+        </div>
+    </footer>
+
+    <!-- ================================================================== -->
+    <!-- MODALS                                                             -->
+    <!-- ================================================================== -->
+
+    <!-- WebRTC Camera Modal -->
+    <div id="camera-modal" role="dialog" aria-modal="true" aria-label="Camera specimen capture" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full overflow-hidden border border-slate-200">
+            <div class="py-3 px-4 bg-slate-900 text-white flex justify-between items-center text-xs font-bold">
+                <span>Direct Camera Specimen Capture</span>
+                <button id="btn-close-camera" type="button" aria-label="Close camera" class="text-slate-400 hover:text-white">✕</button>
+            </div>
+            <div class="p-4 bg-black flex justify-center">
+                <video id="camera-video" autoplay playsinline class="w-full max-h-72 object-contain"></video>
+            </div>
+            <div class="p-4 bg-white flex justify-end space-x-2">
+                <button id="btn-capture-photo" class="py-2 px-4 bg-emerald-800 text-white rounded text-xs font-semibold hover:bg-emerald-900">
+                    Capture Specimen
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="login-modal" role="dialog" aria-modal="true" aria-labelledby="login-modal-title" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-sm w-full p-6 border border-slate-200">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="login-modal-title" class="text-sm font-bold text-slate-900 uppercase tracking-wider">Account Sign In</h3>
+                <button type="button" data-modal-close="login-modal" aria-label="Close dialog" class="text-slate-400 hover:text-slate-700">✕</button>
+            </div>
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1" for="login-email">Email Address</label>
+                    <input type="email" id="login-email" required class="w-full text-xs border border-slate-300 rounded px-3 py-2">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1" for="login-password">Password</label>
+                    <input type="password" id="login-password" required class="w-full text-xs border border-slate-300 rounded px-3 py-2">
+                </div>
+                <button type="submit" class="w-full py-2 bg-emerald-800 text-white rounded text-xs font-semibold hover:bg-emerald-900 transition-colors">
+                    Sign In
+                </button>
+            </form>
+            <div class="mt-4 pt-3 border-t border-slate-100 text-[11px] text-slate-500 text-center">
+                Inspector accounts are provisioned by the deployment operator. Sign up to scan inputs and crops as a grower.
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div id="register-modal" role="dialog" aria-modal="true" aria-labelledby="register-modal-title" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6 border border-slate-200">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="register-modal-title" class="text-sm font-bold text-slate-900 uppercase tracking-wider">User Registration</h3>
+                <button type="button" data-modal-close="register-modal" aria-label="Close dialog" class="text-slate-400 hover:text-slate-700">✕</button>
+            </div>
+            <form id="register-form" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1" for="reg-fullname">Full Name</label>
+                    <input type="text" id="reg-fullname" required class="w-full text-xs border border-slate-300 rounded px-3 py-1.5">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1" for="reg-email">Email Address</label>
+                    <input type="email" id="reg-email" required class="w-full text-xs border border-slate-300 rounded px-3 py-1.5">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1" for="reg-password">Password (minimum 8 characters)</label>
+                    <input type="password" id="reg-password" minlength="8" required class="w-full text-xs border border-slate-300 rounded px-3 py-1.5">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1" for="reg-district">District</label>
+                    <input type="text" id="reg-district" placeholder="e.g. Faisalabad" class="w-full text-xs border border-slate-300 rounded px-3 py-1.5">
+                </div>
+                <p class="text-[11px] text-slate-500">Sign-up creates a farmer account. Inspector access is issued by the ministry deployment, not requested here.</p>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1" for="reg-org">Organization / Farm Entity</label>
+                    <input type="text" id="reg-org" placeholder="e.g. Green Acres Farm or Provincial Dept." class="w-full text-xs border border-slate-300 rounded px-3 py-1.5">
+                </div>
+                <button type="submit" class="w-full py-2 bg-emerald-800 text-white rounded text-xs font-semibold hover:bg-emerald-900 transition-colors mt-2">
+                    Create Account
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Fraud Report Modal -->
+    <div id="fraud-modal" role="dialog" aria-modal="true" aria-labelledby="fraud-modal-title" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-lg w-full p-6 border border-slate-200">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="fraud-modal-title" class="text-sm font-bold text-red-800 uppercase tracking-wider">File Non-Compliance Complaint</h3>
+                <button type="button" data-modal-close="fraud-modal" aria-label="Close dialog" class="text-slate-400 hover:text-slate-700">✕</button>
+            </div>
+            <form id="fraud-report-form" class="space-y-3">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1" for="frd-dealer-name">Dealer / Shop Name</label>
+                        <input type="text" id="frd-dealer-name" required placeholder="e.g. Al-Madina Agri Services" class="w-full text-xs border border-slate-300 rounded px-3 py-1.5">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1" for="frd-dealer-location">Dealer Location / City</label>
+                        <input type="text" id="frd-dealer-location" required placeholder="e.g. Grain Market, Sahiwal" class="w-full text-xs border border-slate-300 rounded px-3 py-1.5">
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="col-span-2">
+                        <label class="block text-xs font-semibold text-slate-700 mb-1" for="frd-product-name">Product Brand Name</label>
+                        <input type="text" id="frd-product-name" required placeholder="e.g. Sona Urea 50kg" class="w-full text-xs border border-slate-300 rounded px-3 py-1.5">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1" for="frd-batch">Suspected Batch #</label>
+                        <input type="text" id="frd-batch" placeholder="Lot #" class="w-full text-xs border border-slate-300 rounded px-3 py-1.5">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1" for="frd-price">Price Charged (PKR per bag)</label>
+                    <input type="number" id="frd-price" placeholder="e.g. 5200" class="w-full text-xs border border-slate-300 rounded px-3 py-1.5">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1" for="frd-notes">Evidence &amp; Violation Details</label>
+                    <textarea id="frd-notes" rows="3" required placeholder="Describe missing hologram, altered batch stamp, refusal of receipt, or counterfeit packaging signs..." class="w-full text-xs border border-slate-300 rounded px-3 py-1.5"></textarea>
+                </div>
+                <button type="submit" class="w-full py-2 bg-red-700 text-white rounded text-xs font-semibold hover:bg-red-800 transition-colors mt-2">
+                    Submit to Regulatory Task Force
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" role="status" aria-live="polite" class="fixed bottom-4 right-4 z-50 w-80 max-w-full"></div>
+
+    <script src="https://js.puter.com/v2/"></script>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
