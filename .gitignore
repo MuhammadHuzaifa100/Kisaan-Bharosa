@@ -1,2 +1,29 @@
 # Created by venv; see https://docs.python.org/3/library/venv.html
 *
+
+# --- ADD THESE LINES BELOW IT ---
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment variables & API keys
+.env
+.env.local
+
+# SQLite Databases
+*.db
+*.sqlite
+*.sqlite3
+kisaan_bharosa.db
+
+# User Uploaded Sample Images (ignore uploaded files, but keep the folder)
+static/uploads/*
+!static/uploads/.gitkeep
+
+# IDE & OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
