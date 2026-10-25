@@ -1,0 +1,25 @@
+# Secrets and local configuration must never be baked into the image.
+.env
+.env.*
+!.env.example
+
+# Virtual environments and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Local data: the database and grower photographs are runtime state, not source
+*.db
+*.sqlite3
+static/uploads/*
+!static/uploads/.gitkeep
+
+# Version control and CI scaffolding
+.git/
+.gitignore
+.github/
+
+# Scratch files
+*.log
