@@ -20,6 +20,7 @@ jobs:
         # No Gemini key here on purpose: the suite must pass with the engine absent,
         # which is the configuration a reviewer cloning this repo will have.
         env:
+          PYTHONPATH: .
           GEMINI_API_KEY: ""
         run: pytest -q
 
